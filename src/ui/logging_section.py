@@ -20,12 +20,12 @@ class LoggingSection:
         
         self.logging_frame = ttk.LabelFrame(self.parent, text="Logging", padding=10)
 
-        
+        self.logging_frame.pack(fill="both", expand=True, padx=10, pady=10)
         self.log_text_frame = ttk.Frame(self.logging_frame)
         self.log_text_frame.pack(fill="both", expand=True)
 
         self.log_text = tk.Text(self.log_text_frame, height=8, wrap=tk.WORD, state=tk.DISABLED, 
-                               bg="
+                               fg="#f0f0f0", bg="#333333", font=("Arial", 10))
         self.log_scrollbar = ttk.Scrollbar(self.log_text_frame, orient="vertical", command=self.log_text.yview)
         self.log_text.configure(yscrollcommand=self.log_scrollbar.set)
 
