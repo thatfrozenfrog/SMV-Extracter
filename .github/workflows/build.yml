@@ -2,10 +2,10 @@ name: Build SMV-Extracter Cross-Platform
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev-build ]  # Add dev-build branch
     tags: [ 'v*' ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev-build ]  # Add dev-build branch
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
