@@ -1,0 +1,25 @@
+# CI/CD Compatible Requirements for SMV-Extracter
+# Uses version ranges instead of pinned versions for better compatibility
+
+certifi>=2024.0.0
+charset-normalizer>=3.0.0
+colorama>=0.4.6
+customtkinter>=5.2.0
+darkdetect>=0.8.0
+decorator>=5.0.0
+ffmpeg-python>=0.2.0
+future>=1.0.0
+idna>=3.0.0
+imageio>=2.30.0
+imageio-ffmpeg>=0.6.0
+moviepy>=2.0.0
+numpy>=1.24.0,<3.0.0  # Compatible with both Python 3.11 and 3.12
+packaging>=24.0
+pillow>=10.0.0
+proglog>=0.1.10
+python-dotenv>=1.0.0
+requests>=2.31.0
+sv-ttk>=2.6.0
+tqdm>=4.65.0
+urllib3>=2.0.0
+yt-dlp>=2024.1.0

@@ -1,0 +1,25 @@
+# Minimal requirements for CI/CD builds
+# Uses older, more stable versions for better compatibility
+
+certifi
+charset-normalizer
+colorama
+customtkinter>=5.0.0
+darkdetect
+decorator
+ffmpeg-python
+future
+idna
+imageio
+imageio-ffmpeg
+moviepy>=1.0.3
+numpy>=1.21.0,<2.0.0  # Use numpy 1.x for maximum compatibility
+packaging
+pillow>=9.0.0
+proglog
+python-dotenv
+requests
+sv-ttk
+tqdm
+urllib3
+yt-dlp

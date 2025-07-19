@@ -21,6 +21,7 @@ def build_with_nuitka():
     system, arch = get_platform_info()
     
     print(f"🚀 Building SMV-Extracter for {system}-{arch}")
+    print(f"🐍 Python version: {sys.version}")
     
     # Base Nuitka command
     cmd = [
@@ -37,6 +38,8 @@ def build_with_nuitka():
         "--include-package=requests",
         "--include-package=ffmpeg",
         "--enable-plugin=tk-inter",
+        "--nofollow-import-to=pytest",  # Exclude test frameworks
+        "--nofollow-import-to=setuptools",  # Reduce bloat
         "main.py"
     ]
     
@@ -53,8 +56,8 @@ def build_with_nuitka():
     print(f"⚡ Running: {' '.join(cmd)}")
     
     try:
-        # Run the build
-        result = subprocess.run(cmd, check=True, capture_output=False, text=True)
+        # Run the build with real-time output
+        result = subprocess.run(cmd, check=True, text=True)
         print("✅ Build completed successfully!")
         return True
     except subprocess.CalledProcessError as e:
