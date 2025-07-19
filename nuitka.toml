@@ -1,0 +1,56 @@
+# Nuitka Build Configuration for SMV-Extracter
+# Cross-platform Python to executable compiler
+
+[build]
+# Basic settings
+main_script = "main.py"
+output_name = "SMV-Extracter"
+output_dir = "dist"
+
+# Compilation options
+standalone = true        # Include all dependencies
+onefile = false         # Create directory distribution (better for large apps)
+enable_console = false  # Hide console window on Windows
+
+# Optimization
+follow_imports = true
+assume_yes_for_downloads = true
+remove_output = true    # Clean previous builds
+
+# Cross-platform support
+include_qt_plugins = false
+include_data_files = [
+    # Add any data files your app needs
+]
+
+# Dependencies to explicitly include
+include_packages = [
+    "customtkinter",
+    "yt_dlp", 
+    "moviepy",
+    "numpy",
+    "PIL",
+    "ffmpeg"
+]
+
+# Performance optimizations
+optimization_level = "O2"
+debug = false
+strip_debug_info = true
+
+# Platform-specific settings
+[build.windows]
+icon = "icon.ico"          # Add your icon file
+enable_console = false
+windows_company_name = "SMV-Extracter"
+windows_product_name = "SMV Video Extractor"
+windows_file_version = "1.0.0"
+windows_product_version = "1.0.0"
+
+[build.linux]
+enable_console = true      # Keep console on Linux for debugging
+linux_strip_binary = true
+
+[build.macos]
+macos_bundle = true
+macos_app_name = "SMV-Extracter"
