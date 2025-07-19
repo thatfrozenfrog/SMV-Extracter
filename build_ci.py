@@ -20,8 +20,8 @@ def build_with_nuitka():
     """Build the application with Nuitka"""
     system, arch = get_platform_info()
     
-    print(f"🚀 Building SMV-Extracter for {system}-{arch}")
-    print(f"🐍 Python version: {sys.version}")
+    print(f"Building SMV-Extracter for {system}-{arch}")
+    print(f"Python version: {sys.version}")
     
     # Base Nuitka command
     cmd = [
@@ -53,15 +53,15 @@ def build_with_nuitka():
             "--windows-product-version=1.0.0",
         ])
     
-    print(f"⚡ Running: {' '.join(cmd)}")
+    print(f"Running: {' '.join(cmd)}")
     
     try:
         # Run the build with real-time output
         result = subprocess.run(cmd, check=True, text=True)
-        print("✅ Build completed successfully!")
+        print("Build completed successfully!")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Build failed with exit code {e.returncode}")
+        print(f"Build failed with exit code {e.returncode}")
         return False
 
 def create_installer():
@@ -75,7 +75,7 @@ echo Installing SMV-Extracter...
 mkdir "%USERPROFILE%\\SMV-Extracter" 2>nul
 xcopy /E /Y "main.dist\\*" "%USERPROFILE%\\SMV-Extracter\\"
 echo.
-echo ✅ SMV-Extracter installed to %USERPROFILE%\\SMV-Extracter
+echo SMV-Extracter installed to %USERPROFILE%\\SMV-Extracter
 echo You can create a desktop shortcut to the executable.
 pause
 '''
@@ -95,11 +95,11 @@ echo "You can run it with: smv-extracter"
     if system != "windows":
         os.chmod(installer_path, 0o755)
     
-    print(f"📦 Created installer: {installer_path}")
+    print(f"Created installer: {installer_path}")
 
 if __name__ == "__main__":
     if build_with_nuitka():
         create_installer()
-        print("🎉 Build process completed!")
+        print("Build process completed!")
     else:
         sys.exit(1)

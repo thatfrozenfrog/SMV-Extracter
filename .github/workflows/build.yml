@@ -13,16 +13,12 @@ jobs:
     timeout-minutes: 60  # Maximum 1 hour per job
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [windows-latest]  # Focus on Windows only for now
         include:
           - os: windows-latest
             platform: windows
             extension: .exe
             installer: .bat
-          - os: ubuntu-latest
-            platform: linux
-            extension: ""
-            installer: .sh
     
     runs-on: ${{ matrix.os }}
     
@@ -35,21 +31,21 @@ jobs:
         echo "Checking required files..."
         ls -la
         if [ -f "requirements-minimal.txt" ]; then
-          echo "✅ requirements-minimal.txt found"
+          echo "requirements-minimal.txt found"
         else
-          echo "❌ requirements-minimal.txt missing"
+          echo "requirements-minimal.txt missing"
           exit 1
         fi
         if [ -f "build_ci.py" ]; then
-          echo "✅ build_ci.py found"
+          echo "build_ci.py found"
         else
-          echo "❌ build_ci.py missing"
+          echo "build_ci.py missing"
           exit 1
         fi
         if [ -f "main.py" ]; then
-          echo "✅ main.py found"
+          echo "main.py found"
         else
-          echo "❌ main.py missing"
+          echo "main.py missing"
           exit 1
         fi
       shell: bash
@@ -76,14 +72,7 @@ jobs:
         python -c "import platform; print('Platform:', platform.platform())"
         pip --version
     
-    - name: Install system dependencies (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ffmpeg
-    
     - name: Install system dependencies (Windows)
-      if: matrix.os == 'windows-latest'
       run: |
         # Use chocolatey to install ffmpeg (simpler and more reliable)
         choco install ffmpeg -y
@@ -99,12 +88,12 @@ jobs:
     
     - name: Verify dependencies
       run: |
-        python -c "import customtkinter; print('✅ CustomTkinter:', customtkinter.__version__)"
-        python -c "import yt_dlp; print('✅ yt-dlp:', yt_dlp.version.__version__)"
-        python -c "import moviepy; print('✅ MoviePy:', moviepy.__version__)"
-        python -c "import numpy; print('✅ NumPy:', numpy.__version__)"
-        python -c "import PIL; print('✅ Pillow:', PIL.__version__)"
-        python -c "import nuitka; print('✅ Nuitka:', nuitka.Version.getNuitkaVersion())"
+        python -c "import customtkinter; print('CustomTkinter:', customtkinter.__version__)"
+        python -c "import yt_dlp; print('yt-dlp:', yt_dlp.version.__version__)"
+        python -c "import moviepy; print('MoviePy:', moviepy.__version__)"
+        python -c "import numpy; print('NumPy:', numpy.__version__)"
+        python -c "import PIL; print('Pillow:', PIL.__version__)"
+        python -c "import nuitka; print('Nuitka installed successfully')"
     
     - name: Build with Nuitka
       run: python build_ci.py
@@ -114,16 +103,9 @@ jobs:
       run: echo "Installer created by build_ci.py"
     
     - name: Package artifacts (Windows)
-      if: matrix.os == 'windows-latest'
       run: |
         cd dist
         7z a -tzip SMV-Extracter-Windows-x64.zip main.dist install.bat
-    
-    - name: Package artifacts (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        cd dist
-        tar -czf SMV-Extracter-Linux-x64.tar.gz main.dist install.sh
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -135,14 +117,8 @@ jobs:
     
     - name: Get file sizes
       run: |
-        echo "📦 Build Results:"
-        if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-          ls -lh dist/SMV-Extracter-Linux-x64.tar.gz
-          echo "Size: $(du -h dist/SMV-Extracter-Linux-x64.tar.gz | cut -f1)"
-        else
-          dir dist\SMV-Extracter-Windows-x64.zip
-        fi
-      shell: bash
+        echo "Build Results:"
+        dir dist\SMV-Extracter-Windows-x64.zip
 
   release:
     needs: build
