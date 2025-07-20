@@ -110,7 +110,7 @@ jobs:
           python -c "import moviepy; print('MoviePy:', moviepy.__version__)"
           python -c "import numpy; print('NumPy:', numpy.__version__)"
           python -c "import PIL; print('Pillow:', PIL.__version__)"
-          python -c "import sv_ttk; print('sv_ttk:', sv_ttk.__version__)"
+          python -c "import sv_ttk; print('sv_ttk: imported successfully')"
           Write-Host "All dependencies verified in virtual environment"
         } else {
           Write-Host "Virtual environment not found"
