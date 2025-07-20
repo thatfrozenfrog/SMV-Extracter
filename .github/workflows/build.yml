@@ -1,0 +1,165 @@
+name: Build SMV-Extracter Cross-Platform
+
+on:
+  push:
+    branches: [ main, dev-build ]  
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, dev-build ]  
+  workflow_dispatch:  
+
+jobs:
+  build:
+    timeout-minutes: 60  
+    strategy:
+      matrix:
+        os: [windows-latest]  
+        include:
+          - os: windows-latest
+            platform: windows
+            extension: .exe
+            installer: .bat
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Verify required files
+      run: |
+        echo "Checking required files..."
+        ls -la
+        if [ -f "requirements-minimal.txt" ]; then
+          echo "requirements-minimal.txt found"
+        else
+          echo "requirements-minimal.txt missing"
+          exit 1
+        fi
+        if [ -f "build_pyinstaller.py" ]; then
+          echo "build_pyinstaller.py found"
+        else
+          echo "build_pyinstaller.py missing"
+          exit 1
+        fi
+        if [ -f "main.py" ]; then
+          echo "main.py found"
+        else
+          echo "main.py missing"
+          exit 1
+        fi
+      shell: bash
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'  
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/pip
+          ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements-minimal.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Debug Python environment
+      run: |
+        python --version
+        python -c "import sys; print('Python executable:', sys.executable)"
+        python -c "import platform; print('Platform:', platform.platform())"
+        pip --version
+    
+    - name: Install system dependencies (Windows)
+      run: |
+        
+        choco install ffmpeg -y
+      timeout-minutes: 5
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install pyinstaller
+        
+        pip install -r requirements-minimal.txt
+      timeout-minutes: 10  
+    
+    - name: Verify dependencies
+      run: |
+        python -c "import customtkinter; print('CustomTkinter:', customtkinter.__version__)"
+        python -c "import yt_dlp; print('yt-dlp:', yt_dlp.version.__version__)"
+        python -c "import moviepy; print('MoviePy:', moviepy.__version__)"
+        python -c "import numpy; print('NumPy:', numpy.__version__)"
+        python -c "import PIL; print('Pillow:', PIL.__version__)"
+        python -c "import PyInstaller; print('PyInstaller installed successfully')"
+    
+    - name: Build with PyInstaller
+      run: python build_pyinstaller.py
+      timeout-minutes: 15  
+    
+    - name: Verify build artifacts
+      run: |
+        echo "Build Results:"
+        if (Test-Path "dist\SMV-Extracter-Windows-x64.zip") {
+          $size = (Get-Item "dist\SMV-Extracter-Windows-x64.zip").Length / 1MB
+          Write-Host "ZIP file size: $([math]::Round($size, 2)) MB"
+        } else {
+          Write-Host "ZIP file not found"
+          exit 1
+        }
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: SMV-Extracter-${{ matrix.platform }}-x64
+        path: |
+          dist/SMV-Extracter-*-x64.*
+        retention-days: 30
+    
+    - name: Get file sizes
+      run: |
+        echo "Build Results:"
+        dir dist\SMV-Extracter-Windows-x64.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          artifacts/**/*
+        body: |
+          #
+          
+          **Downloads:**
+          - 🪟 **Windows**: `SMV-Extracter-Windows-x64.zip`
+          
+          **Installation:**
+          1. Download the Windows archive
+          2. Extract the archive
+          3. Run the installer script (`install.bat`)
+          
+          **Features:**
+          - YouTube video downloader
+          - Frame extraction tools
+          - Modern GUI interface
+          - Windows desktop application
+          
+          **System Requirements:**
+          - Windows 10+
+          - No Python installation required
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
