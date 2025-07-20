@@ -17,36 +17,78 @@ def build_with_pyinstaller():
     
     print(f"Building SMV-Extracter with PyInstaller for {system}-{arch}")
     
-    # Get sv_ttk package path for manual data inclusion
-    try:
-        import sv_ttk
-        sv_ttk_path = Path(sv_ttk.__file__).parent
-        sv_ttk_data = f"{sv_ttk_path};sv_ttk"
-        print(f"Found sv_ttk at: {sv_ttk_path}")
-    except ImportError:
-        print("Warning: sv_ttk not found, adding as hidden import only")
-        sv_ttk_data = None
+    # First, find the correct Python executable
+    venv_python = None
+    possible_paths = [
+        Path(".venv/Scripts/python.exe"),  # Windows uv default
+        Path("venv/Scripts/python.exe"),   # Windows alternative  
+        Path(".venv/bin/python"),          # Linux/Mac uv default
+        Path("venv/bin/python")            # Linux/Mac alternative
+    ]
     
-    # Try to use uv's Python executable, but fall back to direct installation
+    for path in possible_paths:
+        if path.exists():
+            venv_python = str(path.absolute())
+            print(f"Found uv virtual environment Python: {venv_python}")
+            break
+    
+    # Get sv_ttk package path for manual data inclusion
+    sv_ttk_data = None
+    if venv_python:
+        try:
+            # Check sv_ttk in the virtual environment
+            result = subprocess.run([venv_python, "-c", "import sv_ttk; print(sv_ttk.__file__)"], 
+                                  capture_output=True, text=True, check=True)
+            sv_ttk_file = result.stdout.strip()
+            sv_ttk_path = Path(sv_ttk_file).parent
+            sv_ttk_data = f"{sv_ttk_path};sv_ttk"
+            print(f"Found sv_ttk at: {sv_ttk_path}")
+        except subprocess.CalledProcessError:
+            print("Warning: sv_ttk not found in virtual environment")
+    else:
+        try:
+            import sv_ttk
+            sv_ttk_path = Path(sv_ttk.__file__).parent
+            sv_ttk_data = f"{sv_ttk_path};sv_ttk"
+            print(f"Found sv_ttk at: {sv_ttk_path}")
+        except ImportError:
+            print("Warning: sv_ttk not found, adding as hidden import only")
+    
+    # Use uv virtual environment approach
     try:
-        # Check if we're in a uv environment
-        result = subprocess.run(["uv", "--version"], capture_output=True, text=True, check=True)
-        print(f"Found uv: {result.stdout.strip()}")
+        # Check if we have a uv virtual environment
+        venv_python = None
         
-        # Install PyInstaller using uv pip
-        print("Installing PyInstaller using uv...")
-        subprocess.run(["uv", "pip", "install", "pyinstaller"], check=True)
+        # Try different common venv paths
+        possible_paths = [
+            Path(".venv/Scripts/python.exe"),  # Windows uv default
+            Path("venv/Scripts/python.exe"),   # Windows alternative
+            Path(".venv/bin/python"),          # Linux/Mac uv default
+            Path("venv/bin/python")            # Linux/Mac alternative
+        ]
         
-        # Use the system Python but with uv-managed packages
-        python_exe = sys.executable
-        print(f"Using Python executable: {python_exe}")
+        for path in possible_paths:
+            if path.exists():
+                venv_python = str(path.absolute())
+                print(f"Found uv virtual environment Python: {venv_python}")
+                break
         
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        # Fallback to pip if uv fails
-        print("uv not available or failed, using pip...")
+        if not venv_python:
+            raise FileNotFoundError("No virtual environment found")
+            
+        # Install PyInstaller in the uv environment if not already installed
+        print("Installing PyInstaller in uv environment...")
+        subprocess.run([venv_python, "-m", "pip", "install", "pyinstaller"], check=True)
+        
+        python_exe = venv_python
+        print(f"Using uv environment Python: {python_exe}")
+        
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        print(f"uv environment not found or failed: {e}")
+        # Fallback to system python
         subprocess.run([sys.executable, "-m", "pip", "install", "pyinstaller"], check=True)
         python_exe = sys.executable
-        print(f"Using Python executable: {python_exe}")
+        print(f"Using system Python: {python_exe}")
     
     cmd = [
         python_exe, "-m", "PyInstaller",
@@ -139,8 +181,15 @@ Write-Host "Created ZIP archive: $zipFile"
     return False
 
 if __name__ == "__main__":
-    # Use PyInstaller from uv environment but run directly (not through uv run)
-    print("Building with PyInstaller from uv environment...")
+    # Build using uv virtual environment (recommended workflow)
+    print("Building with PyInstaller using uv virtual environment...")
+    print("Expected workflow:")
+    print("1. pip install uv")
+    print("2. uv venv")
+    print("3. Activate virtual environment")
+    print("4. uv pip install -r requirements-minimal.txt")
+    print("5. python build_pyinstaller.py")
+    print()
     
     if build_with_pyinstaller():
         create_installer()
