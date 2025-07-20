@@ -17,18 +17,18 @@ def build_with_pyinstaller():
     
     print(f"Building SMV-Extracter with PyInstaller for {system}-{arch}")
     
-    # First, find the correct Python executable
+    
     venv_python = None
     possible_paths = [
-        Path(".venv/Scripts/python.exe"),      # Windows uv default
-        Path("src/.venv/Scripts/python.exe"),  # Windows uv in src
-        Path("venv/Scripts/python.exe"),       # Windows alternative
-        Path(".venv/bin/python"),              # Linux/Mac uv default
-        Path("src/.venv/bin/python"),          # Linux/Mac uv in src
-        Path("venv/bin/python")                # Linux/Mac alternative
+        Path(".venv/Scripts/python.exe"),      
+        Path("src/.venv/Scripts/python.exe"),  
+        Path("venv/Scripts/python.exe"),       
+        Path(".venv/bin/python"),              
+        Path("src/.venv/bin/python"),          
+        Path("venv/bin/python")                
     ]
     
-    # Also check if current Python is already in a uv environment
+    
     current_python = sys.executable
     if "venv" in current_python.lower():
         venv_python = current_python
@@ -40,11 +40,11 @@ def build_with_pyinstaller():
                 print(f"Found uv virtual environment Python: {venv_python}")
                 break
     
-    # Get sv_ttk package path for manual data inclusion
+    
     sv_ttk_data = None
     if venv_python:
         try:
-            # Check sv_ttk in the virtual environment
+            
             result = subprocess.run([venv_python, "-c", "import sv_ttk; print(sv_ttk.__file__)"], 
                                   capture_output=True, text=True, check=True)
             sv_ttk_file = result.stdout.strip()
@@ -62,13 +62,13 @@ def build_with_pyinstaller():
         except ImportError:
             print("Warning: sv_ttk not found, adding as hidden import only")
     
-    # Use uv virtual environment approach
+    
     try:
-        # Check if we have a uv virtual environment or are already in one
+        
         if venv_python:
             print(f"Using detected uv environment Python: {venv_python}")
             
-            # Install PyInstaller using uv pip (not regular pip)
+            
             print("Installing PyInstaller in uv environment...")
             subprocess.run(["uv", "pip", "install", "pyinstaller"], check=True)
             
@@ -79,20 +79,20 @@ def build_with_pyinstaller():
         
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         print(f"uv environment not found or failed: {e}")
-        # Fallback to system python
+        
         subprocess.run([sys.executable, "-m", "pip", "install", "pyinstaller"], check=True)
         python_exe = sys.executable
         print(f"Using system Python: {python_exe}")
     
     cmd = [
         python_exe, "-m", "PyInstaller",
-        "--onedir",  
+        "--onefile", 
         "--windowed",  
         "--name", f"SMV-Extracter-{system}-{arch}",
         "--distpath", "dist",
         "--workpath", "build",
         "--specpath", ".",
-        "--additional-hooks-dir", "hooks",  # Use custom hooks
+        "--additional-hooks-dir", "hooks",  
         "--add-data", "src;src",  
         "--hidden-import", "customtkinter",
         "--hidden-import", "yt_dlp",
@@ -103,6 +103,8 @@ def build_with_pyinstaller():
         "--hidden-import", "requests",
         "--hidden-import", "sv_ttk",
         "--hidden-import", "sv_ttk.themes",
+        "--hidden-import", "sv_ttk.constants",
+        "--hidden-import", "sv_ttk.loader",
         "--collect-all", "customtkinter",
         "--collect-all", "yt_dlp",
         "--collect-all", "sv_ttk",
@@ -111,7 +113,7 @@ def build_with_pyinstaller():
         "main.py"
     ]
     
-    # Add sv_ttk data manually if found
+    
     if sv_ttk_data:
         cmd.insert(-1, "--add-data")
         cmd.insert(-1, sv_ttk_data)
@@ -127,61 +129,23 @@ def build_with_pyinstaller():
         return False
 
 def create_installer():
-    """Create installer script"""
-    system = platform.system().lower()
-    dist_dir = Path("dist")
-    
-    if system == "windows":
-        installer_content = '''@echo off
-echo Installing SMV-Extracter...
-mkdir "%USERPROFILE%\\SMV-Extracter" 2>nul
-xcopy /E /Y "SMV-Extracter-windows-x64\\*" "%USERPROFILE%\\SMV-Extracter\\"
-echo.
-echo SMV-Extracter installed to %USERPROFILE%\\SMV-Extracter
-echo You can create a desktop shortcut to the executable.
-pause
-'''
-        installer_path = dist_dir / "install.bat"
-    
-    installer_path.write_text(installer_content)
-    print(f"Created installer: {installer_path}")
+    """Create installer script - Not needed for single file executable"""
+    print("Skipping installer creation for single file executable")
+    return True
 
 def create_zip_archive():
-    """Create ZIP archive using fast .NET compression"""
-    system = platform.system().lower()
-    arch = "x64" if platform.machine().lower() in ["x86_64", "amd64"] else "x86"
-    
-    if system == "windows":
-        
-        powershell_script = f'''
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-$sourceDir = "dist\\SMV-Extracter-{system}-{arch}"
-$zipFile = "dist\\SMV-Extracter-Windows-x64.zip"
-if (Test-Path $zipFile) {{ Remove-Item $zipFile -Force }}
-[IO.Compression.ZipFile]::CreateFromDirectory($sourceDir, $zipFile, 'Fastest', $false)
-Write-Host "Created ZIP archive: $zipFile"
-'''
-        try:
-            result = subprocess.run([
-                "powershell", "-Command", powershell_script
-            ], check=True, capture_output=True, text=True)
-            print("ZIP archive created successfully using .NET API")
-            return True
-        except subprocess.CalledProcessError as e:
-            print(f"Failed to create ZIP archive: {e}")
-            print(f"Error output: {e.stderr}")
-            return False
-    
-    return False
+    """Create ZIP archive - Not needed for single file executable"""
+    print("Skipping ZIP creation for single file executable")
+    return True
 
 if __name__ == "__main__":
-    # Build using uv virtual environment (recommended workflow)
+    
     print("Building with PyInstaller using uv virtual environment...")
     print("Expected workflow:")
     print("1. pip install uv")
     print("2. uv venv")
     print("3. Activate virtual environment")
-    print("4. uv pip install -r requirements-minimal.txt")
+    print("4. uv pip install -r requirements.txt")
     print("5. python build_pyinstaller.py")
     print()
     

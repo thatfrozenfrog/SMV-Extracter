@@ -26,27 +26,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Verify required files
-      run: |
-        echo "Checking required files..."
-        dir
-        if (!(Test-Path "requirements-minimal.txt")) { 
-          Write-Host "requirements-minimal.txt missing"
-          exit 1 
-        } else { Write-Host "requirements-minimal.txt found" }
-        if (!(Test-Path "build_pyinstaller.py")) { 
-          Write-Host "build_pyinstaller.py missing"
-          exit 1 
-        } else { Write-Host "build_pyinstaller.py found" }
-        if (!(Test-Path "main.py")) { 
-          Write-Host "main.py missing"
-          exit 1 
-        } else { Write-Host "main.py found" }
-        if (!(Test-Path "hooks\hook-sv_ttk.py")) { 
-          Write-Host "hooks\hook-sv_ttk.py missing"
-          exit 1 
-        } else { Write-Host "hooks\hook-sv_ttk.py found" }
-    
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -82,7 +62,7 @@ jobs:
     
     - name: Install Python dependencies
       run: |
-        # Create uv virtual environment and install dependencies
+        
         Write-Host "Installing uv..."
         python -m pip install uv
         
@@ -102,7 +82,7 @@ jobs:
     
     - name: Verify dependencies
       run: |
-        # Verify dependencies are installed in virtual environment
+        
         if (Test-Path ".venv\Scripts\Activate.ps1") {
           .\.venv\Scripts\Activate.ps1
           python -c "import customtkinter; print('CustomTkinter:', customtkinter.__version__)"
@@ -119,7 +99,7 @@ jobs:
     
     - name: Build with PyInstaller
       run: |
-        # Activate virtual environment and run build
+        
         if (Test-Path ".venv\Scripts\Activate.ps1") {
           .\.venv\Scripts\Activate.ps1
           python build_pyinstaller.py
@@ -132,35 +112,28 @@ jobs:
     - name: Verify PyInstaller output
       run: |
         echo "Checking PyInstaller build output:"
-        if (Test-Path "dist\SMV-Extracter-windows-x64\SMV-Extracter-windows-x64.exe") {
-          Write-Host " Executable found"
-          $exeSize = (Get-Item "dist\SMV-Extracter-windows-x64\SMV-Extracter-windows-x64.exe").Length / 1MB
+        if (Test-Path "dist\SMV-Extracter-windows-x64.exe") {
+          Write-Host "✓ Single executable found"
+          $exeSize = (Get-Item "dist\SMV-Extracter-windows-x64.exe").Length / 1MB
           Write-Host "Executable size: $([math]::Round($exeSize, 2)) MB"
         } else {
-          Write-Host " Executable not found - PyInstaller build may have failed"
+          Write-Host "✗ Executable not found - PyInstaller build may have failed"
           Write-Host "Contents of dist directory:"
           if (Test-Path "dist") { dir dist -Recurse } else { Write-Host "dist directory not found" }
           exit 1
-        }  
+        }
     
     - name: Verify build artifacts
       run: |
         echo "Build Results:"
         echo "Directory listing of dist:"
         dir dist
-        if (Test-Path "dist\SMV-Extracter-windows-x64") {
-          echo "Application directory found"
-          $appSize = (Get-ChildItem "dist\SMV-Extracter-windows-x64" -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
-          Write-Host "Application size: $([math]::Round($appSize, 2)) MB"
+        if (Test-Path "dist\SMV-Extracter-windows-x64.exe") {
+          echo "✓ Single executable found"
+          $exeSize = (Get-Item "dist\SMV-Extracter-windows-x64.exe").Length / 1MB
+          Write-Host "Single executable size: $([math]::Round($exeSize, 2)) MB"
         } else {
-          Write-Host "Application directory not found"
-          exit 1
-        }
-        if (Test-Path "dist\SMV-Extracter-Windows-x64.zip") {
-          $zipSize = (Get-Item "dist\SMV-Extracter-Windows-x64.zip").Length / 1MB
-          Write-Host "ZIP file size: $([math]::Round($zipSize, 2)) MB"
-        } else {
-          Write-Host "ZIP file not found"
+          Write-Host "✗ Single executable not found"
           exit 1
         }
     
@@ -169,14 +142,16 @@ jobs:
       with:
         name: SMV-Extracter-${{ matrix.platform }}-x64
         path: |
-          dist/SMV-Extracter-Windows-x64.zip
-          dist/install.bat
+          dist/SMV-Extracter-windows-x64.exe
         retention-days: 30
     
     - name: Get file sizes
       run: |
         echo "Build Results:"
-        dir dist\SMV-Extracter-Windows-x64.zip
+        if (Test-Path "dist\SMV-Extracter-windows-x64.exe") {
+          $exeSize = (Get-Item "dist\SMV-Extracter-windows-x64.exe").Length / 1MB
+          Write-Host "Final executable: SMV-Extracter-windows-x64.exe ($([math]::Round($exeSize, 2)) MB)"
+        }
 
   release:
     needs: build
@@ -195,11 +170,17 @@ jobs:
         files: |
           artifacts/**/*
         body: |
+          ## SMV-Extracter Release
           
-          **Installation:**
-          1. Download the Windows archive
-          2. Extract the archive
-          3. Run the installer script (`install.bat`)
+          **Single Executable Application**
+          - Download `SMV-Extracter-windows-x64.exe`
+          - No installation required - just run the executable
+          - All dependencies included in the single file
+          
+          **Usage:**
+          1. Download the executable
+          2. Run directly - no installation needed
+          3. First run may be slower due to extraction
 
         draft: false
         prerelease: false
