@@ -20,17 +20,25 @@ def build_with_pyinstaller():
     # First, find the correct Python executable
     venv_python = None
     possible_paths = [
-        Path(".venv/Scripts/python.exe"),  # Windows uv default
-        Path("venv/Scripts/python.exe"),   # Windows alternative  
-        Path(".venv/bin/python"),          # Linux/Mac uv default
-        Path("venv/bin/python")            # Linux/Mac alternative
+        Path(".venv/Scripts/python.exe"),      # Windows uv default
+        Path("src/.venv/Scripts/python.exe"),  # Windows uv in src
+        Path("venv/Scripts/python.exe"),       # Windows alternative
+        Path(".venv/bin/python"),              # Linux/Mac uv default
+        Path("src/.venv/bin/python"),          # Linux/Mac uv in src
+        Path("venv/bin/python")                # Linux/Mac alternative
     ]
     
-    for path in possible_paths:
-        if path.exists():
-            venv_python = str(path.absolute())
-            print(f"Found uv virtual environment Python: {venv_python}")
-            break
+    # Also check if current Python is already in a uv environment
+    current_python = sys.executable
+    if "venv" in current_python.lower():
+        venv_python = current_python
+        print(f"Using current uv environment Python: {venv_python}")
+    else:
+        for path in possible_paths:
+            if path.exists():
+                venv_python = str(path.absolute())
+                print(f"Found uv virtual environment Python: {venv_python}")
+                break
     
     # Get sv_ttk package path for manual data inclusion
     sv_ttk_data = None
@@ -56,32 +64,18 @@ def build_with_pyinstaller():
     
     # Use uv virtual environment approach
     try:
-        # Check if we have a uv virtual environment
-        venv_python = None
-        
-        # Try different common venv paths
-        possible_paths = [
-            Path(".venv/Scripts/python.exe"),  # Windows uv default
-            Path("venv/Scripts/python.exe"),   # Windows alternative
-            Path(".venv/bin/python"),          # Linux/Mac uv default
-            Path("venv/bin/python")            # Linux/Mac alternative
-        ]
-        
-        for path in possible_paths:
-            if path.exists():
-                venv_python = str(path.absolute())
-                print(f"Found uv virtual environment Python: {venv_python}")
-                break
-        
-        if not venv_python:
-            raise FileNotFoundError("No virtual environment found")
+        # Check if we have a uv virtual environment or are already in one
+        if venv_python:
+            print(f"Using detected uv environment Python: {venv_python}")
             
-        # Install PyInstaller in the uv environment if not already installed
-        print("Installing PyInstaller in uv environment...")
-        subprocess.run([venv_python, "-m", "pip", "install", "pyinstaller"], check=True)
-        
-        python_exe = venv_python
-        print(f"Using uv environment Python: {python_exe}")
+            # Install PyInstaller using uv pip (not regular pip)
+            print("Installing PyInstaller in uv environment...")
+            subprocess.run(["uv", "pip", "install", "pyinstaller"], check=True)
+            
+            python_exe = venv_python
+            print(f"Using uv environment Python: {python_exe}")
+        else:
+            raise FileNotFoundError("No virtual environment found")
         
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         print(f"uv environment not found or failed: {e}")
