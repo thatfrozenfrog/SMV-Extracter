@@ -35,8 +35,10 @@ def build_with_pyinstaller():
         "--hidden-import", "ffmpeg",
         "--hidden-import", "requests",
         "--hidden-import", "sv_ttk",
+        "--hidden-import", "sv_ttk.themes",
         "--collect-all", "customtkinter",
         "--collect-all", "yt_dlp",
+        "--collect-all", "sv_ttk",
         "main.py"
     ]
     
