@@ -33,6 +33,8 @@ def build_with_pyinstaller():
         "--hidden-import", "numpy",
         "--hidden-import", "PIL",
         "--hidden-import", "ffmpeg",
+        "--hidden-import", "requests",
+        "--hidden-import", "sv_ttk",
         "--collect-all", "customtkinter",
         "--collect-all", "yt_dlp",
         "main.py"

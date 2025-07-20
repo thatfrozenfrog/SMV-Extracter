@@ -140,25 +140,12 @@ jobs:
         files: |
           artifacts/**/*
         body: |
-          #
-          
-          **Downloads:**
-          - 🪟 **Windows**: `SMV-Extracter-Windows-x64.zip`
           
           **Installation:**
           1. Download the Windows archive
           2. Extract the archive
           3. Run the installer script (`install.bat`)
-          
-          **Features:**
-          - YouTube video downloader
-          - Frame extraction tools
-          - Modern GUI interface
-          - Windows desktop application
-          
-          **System Requirements:**
-          - Windows 10+
-          - No Python installation required
+
         draft: false
         prerelease: false
       env:
