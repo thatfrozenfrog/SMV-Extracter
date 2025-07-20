@@ -1,0 +1,36 @@
+[project]
+name = "smv-extracter"
+version = "1.0.0"
+description = "YouTube video downloader and frame extractor"
+authors = [
+    { name = "thatfrozenfrog" }
+]
+dependencies = [
+    "certifi>=2023.0.0",
+    "charset-normalizer>=3.0.0",
+    "colorama>=0.4.0",
+    "customtkinter>=5.2.0",
+    "darkdetect>=0.8.0",
+    "decorator>=5.0.0",
+    "ffmpeg-python>=0.2.0",
+    "future>=1.0.0",
+    "idna>=3.0.0",
+    "imageio>=2.30.0",
+    "imageio-ffmpeg>=0.5.0",
+    "moviepy>=2.0.0",
+    "numpy>=1.21.0,<2.0.0",
+    "packaging>=20.0",
+    "pillow>=10.0.0",
+    "proglog>=0.1.0",
+    "python-dotenv>=1.0.0",
+    "requests>=2.25.0",
+    "sv-ttk>=2.0.0",
+    "tqdm>=4.60.0",
+    "urllib3>=2.0.0",
+    "yt-dlp>=2024.1.1",
+]
+requires-python = ">=3.12"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

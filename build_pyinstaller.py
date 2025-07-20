@@ -27,14 +27,36 @@ def build_with_pyinstaller():
         print("Warning: sv_ttk not found, adding as hidden import only")
         sv_ttk_data = None
     
+    # Try to use uv's Python executable, but fall back to direct installation
+    try:
+        # Check if we're in a uv environment
+        result = subprocess.run(["uv", "--version"], capture_output=True, text=True, check=True)
+        print(f"Found uv: {result.stdout.strip()}")
+        
+        # Install PyInstaller using uv pip
+        print("Installing PyInstaller using uv...")
+        subprocess.run(["uv", "pip", "install", "pyinstaller"], check=True)
+        
+        # Use the system Python but with uv-managed packages
+        python_exe = sys.executable
+        print(f"Using Python executable: {python_exe}")
+        
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # Fallback to pip if uv fails
+        print("uv not available or failed, using pip...")
+        subprocess.run([sys.executable, "-m", "pip", "install", "pyinstaller"], check=True)
+        python_exe = sys.executable
+        print(f"Using Python executable: {python_exe}")
+    
     cmd = [
-        sys.executable, "-m", "PyInstaller",
+        python_exe, "-m", "PyInstaller",
         "--onedir",  
         "--windowed",  
         "--name", f"SMV-Extracter-{system}-{arch}",
         "--distpath", "dist",
         "--workpath", "build",
         "--specpath", ".",
+        "--additional-hooks-dir", "hooks",  # Use custom hooks
         "--add-data", "src;src",  
         "--hidden-import", "customtkinter",
         "--hidden-import", "yt_dlp",
@@ -117,13 +139,8 @@ Write-Host "Created ZIP archive: $zipFile"
     return False
 
 if __name__ == "__main__":
-    
-    try:
-        subprocess.run([sys.executable, "-m", "pip", "install", "pyinstaller"], check=True)
-        print("PyInstaller installed successfully")
-    except:
-        print("Failed to install PyInstaller")
-        sys.exit(1)
+    # Use PyInstaller from uv environment but run directly (not through uv run)
+    print("Building with PyInstaller from uv environment...")
     
     if build_with_pyinstaller():
         create_installer()
