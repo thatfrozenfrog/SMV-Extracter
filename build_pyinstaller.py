@@ -17,6 +17,15 @@ def build_with_pyinstaller():
     
     print(f"Building SMV-Extracter with PyInstaller for {system}-{arch}")
     
+    # Get sv_ttk package path for manual data inclusion
+    try:
+        import sv_ttk
+        sv_ttk_path = Path(sv_ttk.__file__).parent
+        sv_ttk_data = f"{sv_ttk_path};sv_ttk"
+        print(f"Found sv_ttk at: {sv_ttk_path}")
+    except ImportError:
+        print("Warning: sv_ttk not found, adding as hidden import only")
+        sv_ttk_data = None
     
     cmd = [
         sys.executable, "-m", "PyInstaller",
@@ -39,8 +48,15 @@ def build_with_pyinstaller():
         "--collect-all", "customtkinter",
         "--collect-all", "yt_dlp",
         "--collect-all", "sv_ttk",
+        "--collect-data", "sv_ttk",
+        "--collect-submodules", "sv_ttk",
         "main.py"
     ]
+    
+    # Add sv_ttk data manually if found
+    if sv_ttk_data:
+        cmd.insert(-1, "--add-data")
+        cmd.insert(-1, sv_ttk_data)
     
     print(f"Running: {' '.join(cmd)}")
     
