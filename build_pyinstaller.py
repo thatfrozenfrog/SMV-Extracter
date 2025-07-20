@@ -128,15 +128,7 @@ def build_with_pyinstaller():
         print(f"PyInstaller build failed with exit code {e.returncode}")
         return False
 
-def create_installer():
-    """Create installer script - Not needed for single file executable"""
-    print("Skipping installer creation for single file executable")
-    return True
 
-def create_zip_archive():
-    """Create ZIP archive - Not needed for single file executable"""
-    print("Skipping ZIP creation for single file executable")
-    return True
 
 if __name__ == "__main__":
     
@@ -150,8 +142,7 @@ if __name__ == "__main__":
     print()
     
     if build_with_pyinstaller():
-        create_installer()
-        create_zip_archive()
+
         print("Build process completed!")
     else:
         sys.exit(1)

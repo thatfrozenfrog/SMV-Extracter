@@ -4,6 +4,8 @@ Main window layout and management
 import tkinter as tk
 from tkinter import ttk
 import sv_ttk
+import sys
+import platform
 from .input_section import InputSection
 from .details_section import DetailsSection
 from .logging_section import LoggingSection
@@ -26,7 +28,51 @@ class MainWindow:
         self.root.minsize(800, 800)
         
         
+        self.center_window()
+        
+        
         sv_ttk.set_theme("dark")
+        
+        
+        self.root.after(100, self.ensure_window_focus)
+    
+    def center_window(self):
+        """Center the window on the screen"""
+        self.root.update_idletasks()
+        width = 900  
+        height = 900
+        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.root.winfo_screenheight() // 2) - (height // 2)
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+    
+    def ensure_window_focus(self):
+        """Ensure window gets focus, especially for PyInstaller executables"""
+        try:
+            
+            self.root.lift()
+            self.root.attributes('-topmost', True)
+            self.root.update()
+            self.root.attributes('-topmost', False)
+            self.root.focus_force()
+            
+            
+            if platform.system() == "Windows" and getattr(sys, 'frozen', False):
+                try:
+                    
+                    import ctypes
+                    from ctypes import wintypes
+                    
+                    
+                    hwnd = self.root.winfo_id()
+                    
+                    
+                    ctypes.windll.user32.SetForegroundWindow(hwnd)
+                    ctypes.windll.user32.BringWindowToTop(hwnd)
+                    ctypes.windll.user32.ShowWindow(hwnd, 9)  
+                except ImportError:
+                    pass  
+        except Exception:
+            pass  
     
     def setup_ui(self):
         """Setup the main UI layout"""
